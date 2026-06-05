@@ -9,6 +9,6 @@ from models.database.agent_decision import AgentDecision
 def init_db():
     Base.metadata.create_all(bind=engine)
 
-if __name__ == "main":
+if __name__ == "__main__":
     init_db()
     print("Database tables created successfully")
