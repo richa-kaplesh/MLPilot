@@ -17,4 +17,8 @@ class EDAReport(Base):
     correlations = Column(JSONB, nullable=True)
     skewness = Column(JSONB, nullable=True)
     feature_importance = Column(JSONB, nullable=True)
-    outliers = Column(JSONB)
+    outliers = Column(JSONB, nullable = True)
+    class_balance = Column(JSONB, nullable=True)
+    summary = Column(Text, nullable=True)
+    created_At = Column(DateTime(timezone=True), server_default=func.now())
+    
