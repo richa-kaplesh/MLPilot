@@ -12,4 +12,9 @@ class EDAReport(Base):
     dataset_id = Column(UUID(as_uuid=True), ForeignKey("datasets.id"), nullable=False)
     row_count = Column(String, nullable=True)
     column_count = Column(String, nullable=True)
-    
+    missing_values = Column(JSONB, nullable=True)
+    data_types = Column(JSONB, nullable=True)
+    correlations = Column(JSONB, nullable=True)
+    skewness = Column(JSONB, nullable=True)
+    feature_importance = Column(JSONB, nullable=True)
+    outliers = Column(JSONB)
