@@ -1,19 +1,30 @@
 import chromadb
-from chromadb.settings import Settings
 from config import settings
 
-client = chromadb.PersistentClient(
-    path=settings.chroma_persist_directory
-)
+_client = None
+
+def get_chroma_client():
+    global _client
+    if _client is None:
+        _client = chromadb.PersistentClient(
+            path=settings.chroma_persist_directory
+        )
+    return _client
 
 def get_domain_knowledge_collection():
-    return client.get_or_create_collection(
+    return get_chroma_client().get_or_create_collection(
         name="domain_knowledge",
-        metadata={"description": "Ml domain knowledge and best practices"}
+        metadata={"description": "ML domain knowledge and best practices"}
     )
 
 def get_agent_experience_collection():
-    return client.get_or_create_collection(
+    return get_chroma_client().get_or_create_collection(
+        name="agent_experience",
+        metadata={"description": "Past agent actions and what they led to"}
+    )
+
+def get_decision_history_collection():
+    return get_chroma_client().get_or_create_collection(
         name="decision_history",
-        metadata={"description":"Past decisions and their outcomes"}
+        metadata={"description": "Specific decisions made and their outcomes"}
     )
