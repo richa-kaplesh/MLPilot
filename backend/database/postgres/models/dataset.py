@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Integer, DateTime, Text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.sql import func
 import uuid
-from database.postgres.base import Base
+from backend.database.postgres.base import Base
 
 class Dataset(Base):
     __tablename__ = "datasets"

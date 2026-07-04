@@ -3,7 +3,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.sql import func
 from sqlalchemy import ForeignKey
 import uuid
-from database.postgres.base import Base
+from backend.database.postgres.base import Base
 
 class PipelineState(Base):
     __tablename__ = "pipeline_states"
@@ -19,3 +19,4 @@ class PipelineState(Base):
     next_step = Column(String, nullable=True)
     
 
+    

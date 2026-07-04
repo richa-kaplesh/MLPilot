@@ -3,7 +3,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.sql import func
 from sqlalchemy import ForeignKey
 import uuid
-from database.postgres.base import Base
+from backend.database.postgres.base import Base
 
 class PipelineRun(Base):
     __tablename__ = "pipeline_runs"
