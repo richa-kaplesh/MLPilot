@@ -35,8 +35,7 @@ class BaseAgent(ABC):
     def update_state(self, status: str, current_agent: str, metadata: dict = None) -> None:
         """Update pipeline state in PostgreSQL"""
         from database.postgres.connection import SessionLocal
-        from models.database.pipeline_state import PipelineState
-        
+        from database.postgres.models.pipeline_state import PipelineState        
         db = SessionLocal()
         try:
             state = db.query(PipelineState).filter(

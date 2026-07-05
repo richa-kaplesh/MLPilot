@@ -3,8 +3,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.sql import func
 from sqlalchemy import ForeignKey
 import uuid
-from backend.database.postgres.base import Base
-
+from database.postgres.base import Base
 class EDAReport(Base):
     __tablename__ = "eda_reports"
 
@@ -16,6 +15,7 @@ class EDAReport(Base):
     data_types = Column(JSONB, nullable=True)
     correlations = Column(JSONB, nullable=True)
     skewness = Column(JSONB, nullable=True)
+    normality = Column(JSONB, nullable=True)
     feature_importance = Column(JSONB, nullable=True)
     outliers = Column(JSONB, nullable = True)
     class_balance = Column(JSONB, nullable=True)
