@@ -4,6 +4,8 @@ from scipy import stats as scipy_stats
 from groq import Groq
 from config import settings
 import json
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.preprocessing import LabelEncoder
 
 def clean_for_json(obj):
     """Recursively convert numpy/pandas types to native Python types for JSON serialization"""
@@ -221,3 +223,96 @@ def run_full_statistics(df: pd.DataFrame, problem_statement: str, target_col: st
         "target_analysis": target_analysis
     }
     return clean_for_json(result)
+
+
+def compute_feature_importance(df: pd.DataFrame, target_col: str, problem_type: str) -> dict:
+    """
+    Quick Random Forest importance scores, used only as a signal for
+    Preprocessing's missing-value/encoding decisions — not the final model.
+    Categorical columns are label-encoded temporarily just for this fit;
+    the real encoding decision happens later in Preprocessing.
+    """
+    features = df.drop(columns=[target_col]).copy()
+    target = df[target_col].copy()
+
+    # Temporary encoding just to make RF runnable — not the real encoding strategy
+    for col in features.select_dtypes(include=['object']).columns:
+        features[col] = features[col].fillna("missing")
+        features[col] = LabelEncoder().fit_transform(features[col])
+
+    for col in features.select_dtypes(include=[np.number]).columns:
+        features[col] = features[col].fillna(features[col].median())
+
+    if target.dtype == 'object':
+        target = LabelEncoder().fit_transform(target.astype(str))
+
+    if problem_type == "classification":
+        model = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
+    else:
+        model = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1)
+
+    model.fit(features, target)
+
+    importance_dict = dict(zip(features.columns, model.feature_importances_))
+    return {col: round(float(score), 4) for col, score in importance_dict.items()}
+
+def build_eda_report_payload(df: pd.DataFrame, problem_statement: str) -> dict:
+    target_col = detect_target_column(df, problem_statement)
+    problem_type = detect_problem_type(df, target_col)
+
+    overview = compute_dataset_overview(df)
+    target_analysis = compute_target_analysis(df, target_col, problem_type)
+    feature_importance = compute_feature_importance(df, target_col, problem_type)
+    correlation = compute_correlation_matrix(df)
+
+    missing_values = {}
+    data_types = {}
+    skewness = {}
+    normality = {}
+    outliers = {}
+
+    for col in df.columns:
+        data_types[col] = str(df[col].dtype)
+
+        if df[col].dtype in [np.float64, np.int64]:
+            stats = compute_numerical_stats(df[col])
+            missing_values[col] = stats["missing_pct"]
+            skewness[col] = stats["skewness"]
+            normality[col] = {
+                "is_normal": stats["is_normal"],
+                "p_value": stats["normality_p_value"]
+            }
+            outliers[col] = {
+                "iqr_count": stats["outliers_iqr_count"],
+                "iqr_pct": stats["outliers_iqr_pct"],
+                "zscore_count": stats["outliers_zscore_count"]
+            }
+        else:
+            stats = compute_categorical_stats(df[col])
+            missing_values[col] = stats["missing_pct"]
+
+    class_balance = None
+    if problem_type == "classification":
+        class_balance = {
+            "class_distribution": target_analysis.get("class_distribution"),
+            "imbalance_ratio": target_analysis.get("imbalance_ratio")
+        }
+
+    payload = {
+        "row_count": overview["rows"],
+        "column_count": overview["columns"],
+        "missing_values": missing_values,
+        "data_types": data_types,
+        "correlations": correlation,
+        "skewness": skewness,
+        "normality": normality,
+        "feature_importance": feature_importance,
+        "outliers": outliers,
+        "class_balance": class_balance,
+        "target_column": target_col,
+        "target_analysis": target_analysis,
+        "summary": f"{overview['rows']} rows, {overview['columns']} columns, "
+                   f"problem type: {problem_type}, target: {target_col}"
+    }
+
+    return clean_for_json(payload)

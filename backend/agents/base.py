@@ -9,6 +9,7 @@ from datetime import datetime
 class BaseAgent(ABC):
     def __init__(self, pipeline_run_id: str, problem_statement: str, dataset_path: str):
         self.pipeline_run_id = pipeline_run_id
+        self.dataset_id = dataset_id
         self.problem_statement = problem_statement
         self.dataset_path = dataset_path
         self.llm = Groq(api_key=settings.groq_api_keys[0])
